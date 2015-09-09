@@ -25,12 +25,15 @@ public class TKTransitionSubmitButton : UIButton, UIViewControllerTransitioningD
             self.setBackgroundColor()
         }
     }
+    
     @IBInspectable public var normalBackgroundColor: UIColor? = PINK {
         didSet {
             self.setBackgroundColor()
         }
     }
-
+    
+    @IBInspectable public var transitionDuration = 1.0
+    
     var cachedTitle: String?
 
     public override init(frame: CGRect) {
@@ -64,26 +67,47 @@ public class TKTransitionSubmitButton : UIButton, UIViewControllerTransitioningD
         }
     }
 
-    public func startLoadingAnimation() {
-        self.cachedTitle = titleForState(.Normal)
-        self.setTitle("", forState: .Normal)
-        self.shrink()
-        NSTimer.schedule(delay: shrinkDuration - 0.25) { timer in
-            self.spiner.animation()
+    func startLoadingAnimation() {
+        if self.enabled {
+            self.cachedTitle = titleForState(.Normal)
+            self.setTitle("", forState: .Normal)
+            self.shrink()
+            NSTimer.schedule(delay: shrinkDuration - 0.25) { timer in
+                self.spiner.animation()
+            }
+            self.enabled = false
         }
     }
 
     public func startFinishAnimation(delay: NSTimeInterval, completion:(()->())?) {
         NSTimer.schedule(delay: delay) { timer in
             self.didEndFinishAnimation = completion
-            self.expand()
+//            self.expand()
+            self.cancelShrink()
+            self.setTitle(self.cachedTitle, forState: .Normal)
             self.spiner.stopAnimation()
+            self.enabled = true
         }
+    }
+    
+    public func startAnimate(){
+        if self.enabled {
+            startLoadingAnimation()
+        }
+    }
+    
+    public func stopAnimate(){
+        self.cancelShrink()
+        self.setTitle(self.cachedTitle, forState: .Normal)
+        self.spiner.stopAnimation()
+        self.enabled = true
     }
 
     public func animate(duration: NSTimeInterval, completion:(()->())?) {
-        startLoadingAnimation()
-        startFinishAnimation(duration, completion: completion)
+        if self.enabled {
+            startLoadingAnimation()
+            startFinishAnimation(duration, completion: completion)
+        }
     }
 
     public override func animationDidStop(anim: CAAnimation, finished flag: Bool) {
@@ -112,6 +136,20 @@ public class TKTransitionSubmitButton : UIButton, UIViewControllerTransitioningD
         layer.addAnimation(shrinkAnim, forKey: shrinkAnim.keyPath)
     }
     
+    public func cancelShrink() {
+        let shrinkAnim = CABasicAnimation(keyPath: "bounds.size.width")
+        shrinkAnim.fromValue = frame.height
+        shrinkAnim.toValue = frame.width
+        shrinkAnim.duration = shrinkDuration
+        shrinkAnim.timingFunction = shrinkCurve
+        shrinkAnim.fillMode = kCAFillModeForwards
+        shrinkAnim.removedOnCompletion = false
+        layer.addAnimation(shrinkAnim, forKey: shrinkAnim.keyPath)
+        NSTimer.schedule(delay: shrinkDuration) { timer in
+            self.returnToOriginalState()
+        }
+    }
+    
     func expand() {
         let expandAnim = CABasicAnimation(keyPath: "transform.scale")
         expandAnim.fromValue = 1.0
@@ -124,4 +162,26 @@ public class TKTransitionSubmitButton : UIButton, UIViewControllerTransitioningD
         layer.addAnimation(expandAnim, forKey: expandAnim.keyPath)
     }
     
+    // MARK: UIViewControllerTransitioningDelegate
+     public func animationControllerForPresentedController(presented: UIViewController, presentingController presenting: UIViewController, sourceController source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return TKFadeInAnimator(transitionDuration: transitionDuration, startingAlpha: 0)
+    }
+    
+    public func animationControllerForDismissedController(dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
+        return nil
+    }
+    
+}
+
+extension UIViewController {
+    public func ts_presentViewController(viewController:UIViewController, fromButton:TKTransitionSubmitButton, animated:Bool, completion:(()->Void)?){
+        viewController.transitioningDelegate = fromButton
+        fromButton.enabled = true
+        fromButton.spiner.stopAnimation()
+        fromButton.expand()
+        presentViewController(viewController, animated: animated, completion: completion)
+        NSTimer.schedule(delay: fromButton.transitionDuration) { (timer) -> Void in
+            fromButton.returnToOriginalState()
+        }
+    }
 }

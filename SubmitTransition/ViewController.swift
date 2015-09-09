@@ -4,6 +4,9 @@ class ViewController: UIViewController, UIViewControllerTransitioningDelegate {
     var btn: TKTransitionSubmitButton!
 
     @IBOutlet weak var btnFromNib: TKTransitionSubmitButton!
+    
+    var success = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -25,20 +28,22 @@ class ViewController: UIViewController, UIViewControllerTransitioningDelegate {
     }
 
     @IBAction func onTapButton(button: TKTransitionSubmitButton) {
-        button.animate(1, completion: { () -> () in
-            let secondVC = SecondViewController()
-            secondVC.transitioningDelegate = self
-            self.presentViewController(secondVC, animated: true, completion: nil)
-        })
-    }
 
-    // MARK: UIViewControllerTransitioningDelegate
-    func animationControllerForPresentedController(presented: UIViewController, presentingController presenting: UIViewController, sourceController source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return TKFadeInAnimator(transitionDuration: 0.5, startingAlpha: 0.8)
-    }
-    
-    func animationControllerForDismissedController(dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        return nil
+        if success {
+            button.startAnimate()
+            button.transitionDuration = 2.0
+            NSTimer.schedule(delay: 1, handler: { (timer) -> Void in
+                self.ts_presentViewController(SecondViewController(), fromButton: button, animated: true, completion: nil)
+            })
+
+        }else{
+            button.startAnimate()
+            NSTimer.schedule(delay: 1, handler: { (timer) -> Void in
+                button.stopAnimate()
+            })
+        }
+        
+        success = !success
     }
 }
 
