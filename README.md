@@ -24,7 +24,7 @@ I made them as classes and you can use it with ease.
 ![Demo GIF Animation](https://github.com/entotsu/TKSubmitTransition/blob/master/demo.gif "Demo GIF Animation")
 
 # Installation
-	pod 'TKSubmitTransition'
+	pod 'TKSubmitTransition', :git => 'https://github.com/indevizible/TKSubmitTransition.git', :branch => 'swift2.0'
 
 # Usage
 
