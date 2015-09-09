@@ -37,39 +37,17 @@ btn = TKTransitionSubmitButton(frame: CGRectMake(0, 0, 44, 44))
 ## Animation Method
 ``` swift
 func didStartYourLoading() {
-    btn.startLoadingAnimation()
+    button.startAnimate()
+}
+
+func cancelLoading() {
+    button.stopAnimate()
 }
 
 func didFinishYourLoading() {
-    btn.startFinishAnimation {
-	    //Your Transition
-		let secondVC = SecondViewController()
-		secondVC.transitioningDelegate = self
-		self.presentViewController(secondVC, animated: true, completion: nil)
-    }
+	let secondVC = SecondViewController()
+	button.transitionDuration = 1.0
+	self.ts_presentViewController(secondVC, fromButton: button, animated: true, completion: nil)
 }
 
-```
-
-## TKFadeInAnimator
-This Library also supply fade-in Animator Class of `UIViewControllerAnimatedTransitioning`.
-
-Please use This for transition animation.
-
-### Usage
-
-#### please use UIViewControllerTransitioningDelegate
-> class ViewController: UIViewController, UIViewControllerTransitioningDelegate {
-
-`secondVC.transitioningDelegate = self`
-
-``` swift
-// MARK: UIViewControllerTransitioningDelegate
-func animationControllerForPresentedController(presented: UIViewController, presentingController presenting: UIViewController, sourceController source: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-    let fadeInAnimator = TKFadeInAnimator()
-    return fadeInAnimator
-}
-func animationControllerForDismissedController(dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-    return nil
-}
 ```
